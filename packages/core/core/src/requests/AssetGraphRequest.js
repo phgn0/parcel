@@ -306,13 +306,14 @@ export class AssetGraphBuilder {
               assetNode.usedSymbols.add('*');
               namespaceReexportedSymbols.add('*');
             }
-            if (
-              !assetSymbols ||
-              assetSymbols.has(exportSymbol) ||
-              assetSymbols.has('*')
-            ) {
+            if (assetSymbols.has(exportSymbol)) {
               // An own symbol or a non-namespace reexport
               assetNode.usedSymbols.add(exportSymbol);
+            } else if (!assetSymbols || assetSymbols.has('*')) {
+              // An own symbol or a non-namespace reexport
+              // Also add '*' since this is a fallback based on the namespace (e.g. non-static CJS exports)
+              assetNode.usedSymbols.add(exportSymbol);
+              assetNode.usedSymbols.add('*');
             }
             // A namespace reexport
             // (but only if we actually have namespace-exporting outgoing dependencies,
