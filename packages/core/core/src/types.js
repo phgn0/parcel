@@ -308,6 +308,8 @@ export type DependencyNode = {|
   hasDeferred?: boolean,
   usedSymbolsDown: Set<Symbol>,
   usedSymbolsUp: Set<Symbol>,
+  /** the requested symbols were satisfied by falling back to a `*` symbol */
+  usedSymbolsUpFallback: boolean,
   usedSymbolsDownDirty: boolean,
   /** for the "up" pass, the parent asset needs to be updated */
   usedSymbolsUpDirtyUp: boolean,

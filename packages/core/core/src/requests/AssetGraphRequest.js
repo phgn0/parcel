@@ -22,7 +22,7 @@ import type {PathRequestInput} from './PathRequest';
 
 import invariant from 'assert';
 import nullthrows from 'nullthrows';
-import {PromiseQueue} from '@parcel/utils';
+import {DefaultMap, PromiseQueue} from '@parcel/utils';
 import {hashString} from '@parcel/hash';
 import ThrowableDiagnostic, {md} from '@parcel/diagnostic';
 import {BundleBehavior, Priority} from '../types';
@@ -290,6 +290,11 @@ export class AssetGraphBuilder {
       // Symbols that have to be namespace reexported by outgoingDeps.
       let namespaceReexportedSymbols = new Set<Symbol>();
 
+      // Symbols that will need accessed on the namespace of the parent asset
+      let symbolsFallback = new DefaultMap<Symbol, Set<DependencyNode>>(
+        () => new Set(),
+      );
+
       if (incomingDeps.length === 0) {
         // Root in the runtimes Graph
         assetNode.usedSymbols.add('*');
@@ -314,6 +319,7 @@ export class AssetGraphBuilder {
               // Also add '*' since this is a fallback based on the namespace (e.g. non-static CJS exports)
               assetNode.usedSymbols.add(exportSymbol);
               assetNode.usedSymbols.add('*');
+              symbolsFallback.get(exportSymbol).add(incomingDep);
             }
             // A namespace reexport
             // (but only if we actually have namespace-exporting outgoing dependencies,
@@ -370,9 +376,10 @@ export class AssetGraphBuilder {
                 // we need everything
                 depUsedSymbolsDown.add(symbol);
 
-                [...reexportedExportSymbols].forEach(s =>
-                  assetNode.usedSymbols.delete(s),
-                );
+                [...reexportedExportSymbols].forEach(s => {
+                  assetNode.usedSymbols.delete(s);
+                  symbolsFallback.delete(s);
+                });
               } else {
                 let usedReexportedExportSymbols = [
                   ...reexportedExportSymbols,
@@ -381,9 +388,10 @@ export class AssetGraphBuilder {
                   // The symbol is indeed a reexport, so it's not used from the asset itself
                   depUsedSymbolsDown.add(symbol);
 
-                  usedReexportedExportSymbols.forEach(s =>
-                    assetNode.usedSymbols.delete(s),
-                  );
+                  usedReexportedExportSymbols.forEach(s => {
+                    assetNode.usedSymbols.delete(s);
+                    symbolsFallback.delete(s);
+                  });
                 }
               }
             }
@@ -394,6 +402,11 @@ export class AssetGraphBuilder {
         if (!equalSet(depUsedSymbolsDownOld, depUsedSymbolsDown)) {
           dep.usedSymbolsDownDirty = true;
           dep.usedSymbolsUpDirtyDown = true;
+        }
+      }
+      for (let deps of symbolsFallback.values()) {
+        for (let d of deps) {
+          d.usedSymbolsUpFallback = true;
         }
       }
     });
@@ -457,6 +470,10 @@ export class AssetGraphBuilder {
           if (reexported != null) {
             reexported.forEach(s => reexportedSymbols.add(s));
           }
+        }
+
+        if (outgoingDep.usedSymbolsUpFallback) {
+          assetNode.usedSymbols.add('*');
         }
       }
 

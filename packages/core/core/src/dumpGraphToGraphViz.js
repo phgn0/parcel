@@ -88,6 +88,9 @@ export default async function dumpGraphToGraphViz(
             label +=
               '\\nusedSymbolsDown: ' + [...node.usedSymbolsDown].join(',');
           }
+          if (node.usedSymbolsUpFallback) {
+            label += '\\nusedSymbolsUpFallback';
+          }
         } else {
           label += '\\nsymbols: cleared';
         }
