@@ -1003,6 +1003,7 @@ ${code}
                 prepend += `$parcel$export($${assetId}$exports, ${JSON.stringify(
                   symbol,
                 )}, ${get}${set});\n`;
+                this.usedHelpers.add('$parcel$export');
                 prependLineCount++;
               }
             }
