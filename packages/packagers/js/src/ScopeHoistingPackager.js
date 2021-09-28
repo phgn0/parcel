@@ -739,11 +739,12 @@ ${code}
     // and no __esModule flag, we need to resolve to the namespace instead.
     let isDefaultInterop =
       exportSymbol === 'default' &&
-      staticExports &&
+      // https://github.com/parcel-bundler/parcel/pull/6909
+      // staticExports &&
       !isWrapped &&
-      dep?.meta.kind === 'Import' &&
+      // dep?.meta.kind === 'Import' &&
       resolvedAsset.symbols.hasExportSymbol('*') &&
-      resolvedAsset.symbols.hasExportSymbol('default') &&
+      // resolvedAsset.symbols.hasExportSymbol('default') &&
       !resolvedAsset.symbols.hasExportSymbol('__esModule');
 
     // Find the namespace object for the resolved module. If wrapped and this
