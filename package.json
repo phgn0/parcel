@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/parcel-bundler/parcel.git"
   },
-  "private": true,
+  "private": false,
   "workspaces": [
     "packages/*/*"
   ],
